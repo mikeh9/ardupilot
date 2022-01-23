@@ -520,6 +520,13 @@ void AP_AHRS::set_touchdown_expected(bool b)
     touchdown_expected_start_ms = AP_HAL::millis();
 }
 
+// Write position and quaternion data from an external navigation system
+void AP_AHRS::writeExtNavData(const Vector3f &pos, const Quaternion &quat, float posErr, float angErr, uint32_t timeStamp_ms, uint16_t delay_ms, uint32_t resetTime_ms)
+{
+    //mch
+    xT265 = pos.x; yT265 = pos.y; zT265 = pos.z; 
+}
+
 /*
   update takeoff/touchdown flags
  */
