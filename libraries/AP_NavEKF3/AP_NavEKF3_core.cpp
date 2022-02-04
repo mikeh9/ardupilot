@@ -883,8 +883,8 @@ void NavEKF3_core::calcOutputStates()
     vertCompFiltState.pos += integ3_input; 
 
     // apply a trapezoidal integration to velocities to calculate position
-    outputDataNew.position += (outputDataNew.velocity + lastVelocity) * (imuDataNew.delVelDT*0.5f);
-
+    outputDataNew.position.x = 1.0; //mch outputDataNew.position += (outputDataNew.velocity + lastVelocity) * (imuDataNew.delVelDT*0.5f);
+    outputDataNew.position.y = 2.0; //mch
     // If the IMU accelerometer is offset from the body frame origin, then calculate corrections
     // that can be added to the EKF velocity and position outputs so that they represent the velocity
     // and position of the body frame origin.
