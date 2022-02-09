@@ -541,11 +541,25 @@ bool NavEKF3_core::readyToUseRangeBeacon(void) const
     return tiltAlignComplete && yawAlignComplete && delAngBiasLearned && rngBcnAlignmentCompleted && rngBcnDataToFuse;
 }
 
-// return true if the filter is ready to use external nav data
+// return true if the filter is ready to use external nav XY data
 bool NavEKF3_core::readyToUseExtNav(void) const
 {
 #if EK3_FEATURE_EXTERNAL_NAV
     if (frontend->sources.getPosXYSource() != AP_NavEKF_Source::SourceXY::EXTNAV) {
+        return false;
+    }
+
+    return tiltAlignComplete && extNavDataToFuse;
+#else
+    return false;
+#endif // EK3_FEATURE_EXTERNAL_NAV
+}
+
+// mch return true if the filter is ready to use external nav Z data
+bool NavEKF3_core::readyToUseExtNav_Z(void) const
+{
+#if EK3_FEATURE_EXTERNAL_NAV
+    if (frontend->sources.getPosZSource() != AP_NavEKF_Source::SourceZ::EXTNAV) {
         return false;
     }
 

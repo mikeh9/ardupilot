@@ -394,6 +394,13 @@ AP_GPS::AP_GPS()
     _singleton = this;
 }
 
+bool AP_GPS::check_gps_type_0() const{
+    if(_type[0]==0)
+        return true;
+    else
+        return false;
+}
+
 // return true if a specific type of GPS uses a UART
 bool AP_GPS::needs_uart(GPS_Type type) const
 {

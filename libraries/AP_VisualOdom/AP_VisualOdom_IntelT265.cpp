@@ -20,6 +20,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Logger/AP_Logger.h>
+#include <AP_NavEKF3/AP_NavEKF3_core.h>
 
 #define VISUALODOM_RESET_IGNORE_DURATION_MS 1000    // sensor data is ignored for 1sec after a position reset
 
@@ -28,10 +29,10 @@ extern const AP_HAL::HAL& hal;
 // consume vision position estimate data and send to EKF. distances in meters
 void AP_VisualOdom_IntelT265::handle_vision_position_estimate(uint64_t remote_time_us, uint32_t time_ms, float x, float y, float z, const Quaternion &attitude, float posErr, float angErr, uint8_t reset_counter)
 {
-    const float scale_factor = _frontend.get_pos_scale();
+    const float scale_factor = _frontend.get_pos_scale(); //scale factor from parameters
     Vector3f pos{x * scale_factor, y * scale_factor, z * scale_factor};
     Quaternion att = attitude;
-
+    
     // handle user request to align camera
     if (_align_camera) {
         if (align_sensor_to_vehicle(pos, attitude)) {
@@ -45,8 +46,24 @@ void AP_VisualOdom_IntelT265::handle_vision_position_estimate(uint64_t remote_ti
     }
 
     // rotate position and attitude to align with vehicle
-    rotate_and_correct_position(pos);
-    rotate_attitude(att);
+    //class NavEKF3 _access;
+    //NavEKF3_core access = new NavEKF3_core(&_access);
+    //if(access.readyToUseExtNav())
+    /*
+    NavEKF3_core *ek3_core = AP::ek3core();
+    if(!ek3_core->checkExtNavXY()){
+        rotate_and_correct_position(pos);
+        rotate_attitude(att);
+    }
+    */  
+    const AP_GPS &gps = AP::gps();
+    if(!gps.check_gps_type_0()){ //run when gps is active
+        rotate_and_correct_position(pos);
+        rotate_attitude(att);
+    }
+
+    // mch rotate_and_correct_position(pos);
+    //rotate_attitude(att);
 
     posErr = constrain_float(posErr, _frontend.get_pos_noise(), 100.0f);
     angErr = constrain_float(angErr, _frontend.get_yaw_noise(), 1.5f);
@@ -238,6 +255,8 @@ bool AP_VisualOdom_IntelT265::pre_arm_check(char *failure_msg, uint8_t failure_m
     }
 
     // check if roll and pitch is different by > 10deg (using NED so cannot determine whether roll or pitch specifically)
+    // mch EKF3_SRC_YAW = 1 (compass) not using quat from T265
+    /*
     const float rp_diff_deg = degrees(ahrs_quat.roll_pitch_difference(_attitude_last));
     if (rp_diff_deg > 10.0f) {
         hal.util->snprintf(failure_msg, failure_msg_len, "roll/pitch diff %4.1f deg (>10)",(double)rp_diff_deg);
@@ -252,6 +271,7 @@ bool AP_VisualOdom_IntelT265::pre_arm_check(char *failure_msg, uint8_t failure_m
         hal.util->snprintf(failure_msg, failure_msg_len, "yaw diff %4.1f deg (>10)",(double)yaw_diff_deg);
         return false;
     }
+    */
 
     return true;
 }

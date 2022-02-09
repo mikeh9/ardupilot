@@ -63,10 +63,10 @@ void AP_Frsky_D::send(void)
         send_uint16(DATA_ID_BARO_ALT_BP, _SPort_data.alt_nav_meters); // send nav altitude integer part
         send_uint16(DATA_ID_BARO_ALT_AP, _SPort_data.alt_nav_cm); // send nav altitude decimal part
 
-        //mch
+        // mch
         uint16_t x_cm = _ahrs.xT265*100;
         //uint16_t x_cm = (_ahrs.xT265 - x_m)*100;
-        uint16_t y_cm = _ahrs.yT265*100;
+        uint16_t y_cm = _ahrs.yT265*-100;
         //uint16_t y_cm = (_ahrs.yT265 - y_m)*100;
         uint16_t z_cm = _ahrs.zT265*-100;
         send_uint16(DATA_ID_GPS_SPEED_BP, x_cm); // send external vision x integer part

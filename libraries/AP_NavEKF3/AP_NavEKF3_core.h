@@ -116,6 +116,24 @@ public:
     // Constructor
     NavEKF3_core(class NavEKF3 *_frontend);
 
+    // mch get singleton instance
+    /*static NavEKF3_core *get_singleton() {
+        return _singleton;
+    }
+    */
+
+    // mch return true if the filter to be ready to use external XY nav data
+    bool readyToUseExtNav(void) const;
+
+    // mch return true if the filter to be ready to use external Z nav data
+    bool readyToUseExtNav_Z(void) const;
+
+    // mch return true if the system has switched to external navigation data 
+    bool checkExtNavXY(void) const;
+
+    // mch return true if the system has switched to external navigation data 
+    bool checkExtNavZ(void) const;
+
     // setup this core backend
     bool setup_core(uint8_t _imu_index, uint8_t _core_index);
     
@@ -419,6 +437,9 @@ public:
     bool isVibrationAffected() const { return badIMUdata; }
 
 private:
+    // mch
+    //static NavEKF3_core *_singleton;
+
     EKFGSF_yaw *yawEstimator;
     AP_DAL &dal;
 
@@ -803,8 +824,7 @@ private:
     // return true if the filter is ready to start using body frame odometry measurements
     bool readyToUseBodyOdm(void) const;
 
-    // return true if the filter to be ready to use external nav data
-    bool readyToUseExtNav(void) const;
+ 
 
     // return true if we should use the range finder sensor
     bool useRngFinder(void) const;
@@ -1523,3 +1543,9 @@ private:
     void Log_Write_Timing(uint64_t time_us);
     void Log_Write_GSF(uint64_t time_us);
 };
+
+// mch
+/*namespace AP {
+    NavEKF3_core *ek3core();
+};
+*/

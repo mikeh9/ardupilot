@@ -3,6 +3,7 @@
 #include "AP_NavEKF3.h"
 #include "AP_NavEKF3_core.h"
 #include <AP_DAL/AP_DAL.h>
+#include <AP_AHRS/AP_AHRS.h>
 
 // Check basic filter health metrics and return a consolidated health status
 bool NavEKF3_core::healthy(void) const
@@ -207,7 +208,18 @@ bool NavEKF3_core::getPosNE(Vector2f &posNE) const
     if (PV_AidingMode != AID_NONE) {
         // This is the normal mode of operation where we can use the EKF position states
         // correct for the IMU offset (EKF calculations are at the IMU)
-        posNE = (outputDataNew.position.xy() + posOffsetNED.xy() + public_origin.get_distance_NE_ftype(EKF_origin)).tofloat();
+        if(checkExtNavXY()){ //check if ext navigation is being used for XY
+            AP_AHRS &_ahrs = AP::ahrs();
+            posNE.x =  _ahrs.xT265;
+            posNE.y =  _ahrs.yT265;
+        }
+        else
+            posNE = (outputDataNew.position.xy() + posOffsetNED.xy() + public_origin.get_distance_NE_ftype(EKF_origin)).tofloat();
+
+        // mch posNE = (outputDataNew.position.xy() + posOffsetNED.xy() + public_origin.get_distance_NE_ftype(EKF_origin)).tofloat();
+        //posNE = (outputDataNew.position.xy()).tofloat(); // + posOffsetNED.xy() + public_origin.get_distance_NE_ftype(EKF_origin)).tofloat();
+        //posNE.x = 3.0; //local_position_estimate stays constant; coordinates in gcs jump around lat -696/703 and lon 075/085 because we set outputDataNew.position.x=1.0 in AP_NavEKF3_core.cpp
+        //posNE.y = 4.0;
         return true;
 
     } else {
@@ -254,6 +266,12 @@ bool NavEKF3_core::getPosD(float &posD) const
         posD = outputDataNew.position.z + posOffsetNED.z + 0.01f * (float)EKF_origin.alt - (float)ekfGpsRefHgt;
     }
 
+    // mch
+    if(checkExtNavZ()){ //check if ext navigation is being used for Z
+        AP_AHRS &_ahrs = AP::ahrs();
+        posD = _ahrs.zT265;
+    }
+
     // Return the current height solution status
     return filterStatus.flags.vert_pos;
 
@@ -285,8 +303,9 @@ bool NavEKF3_core::getLLH(struct Location &loc) const
                 // The EKF is able to provide a position estimate
                 loc.lat = EKF_origin.lat;
                 loc.lng = EKF_origin.lng;
-                loc.offset(outputDataNew.position.x + posOffsetNED.x,
-                           outputDataNew.position.y + posOffsetNED.y);
+                // mch swap x and y -> loiter mode feeds off this and causes crash
+                //loc.offset(-1*outputDataNew.position.y + posOffsetNED.y,outputDataNew.position.x + posOffsetNED.x);
+                loc.offset(outputDataNew.position.x + posOffsetNED.x,outputDataNew.position.y + posOffsetNED.y);
                 return true;
             } else {
                 // We have been be doing inertial dead reckoning for too long so use raw GPS if available

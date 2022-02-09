@@ -62,6 +62,8 @@ protected:
     // reset counter handling
     uint8_t _last_reset_counter;    // last sensor reset counter received
     uint32_t _reset_timestamp_ms;   // time reset counter was received
+
+
 };
 
 #endif

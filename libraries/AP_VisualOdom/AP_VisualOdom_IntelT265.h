@@ -64,6 +64,7 @@ protected:
     Quaternion _attitude_last;                  // last attitude received from camera (used for arming checks)
     uint8_t _pos_reset_counter_last;            // last vision-position-estimate reset counter value
     uint32_t _pos_reset_ignore_start_ms;        // system time we start ignoring sensor information, 0 if sensor data is not being ignored
+
 };
 
 #endif

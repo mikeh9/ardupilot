@@ -125,8 +125,8 @@ void NavEKF3_core::ResetPosition(resetDataSource posResetSource)
         storedOutput[i].position.x = stateStruct.position.x;
         storedOutput[i].position.y = stateStruct.position.y;
     }
-    outputDataNew.position.x = stateStruct.position.x;
-    outputDataNew.position.y = stateStruct.position.y;
+    //outputDataNew.position.x = stateStruct.position.x;
+    //outputDataNew.position.y = stateStruct.position.y;
     outputDataDelayed.position.x = stateStruct.position.x;
     outputDataDelayed.position.y = stateStruct.position.y;
 
@@ -164,8 +164,13 @@ void NavEKF3_core::ResetPositionNE(ftype posN, ftype posE)
         storedOutput[i].position.x += posResetNE.x;
         storedOutput[i].position.y += posResetNE.y;
     }
-    outputDataNew.position.x += posResetNE.x;
-    outputDataNew.position.y += posResetNE.y;
+
+    if(!checkExtNavXY()){
+        outputDataNew.position.x += posResetNE.x;
+        outputDataNew.position.y += posResetNE.y;
+    }
+    // mch outputDataNew.position.x += posResetNE.x;
+    // mch outputDataNew.position.y += posResetNE.y;
     outputDataDelayed.position.x += posResetNE.x;
     outputDataDelayed.position.y += posResetNE.y;
 

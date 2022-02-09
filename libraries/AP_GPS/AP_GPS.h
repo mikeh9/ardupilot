@@ -276,6 +276,9 @@ public:
         return location(primary_instance);
     }
 
+    // mch check GPS type
+    bool check_gps_type_0 (void) const;
+    
     // report speed accuracy
     bool speed_accuracy(uint8_t instance, float &sacc) const;
     bool speed_accuracy(float &sacc) const {

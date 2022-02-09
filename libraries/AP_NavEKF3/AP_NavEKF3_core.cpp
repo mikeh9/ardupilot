@@ -17,6 +17,24 @@ NavEKF3_core::NavEKF3_core(NavEKF3 *_frontend) :
     lastInitFailReport_ms = 0;
 }
 
+// mch return true if the system has switched to external navigation data
+bool NavEKF3_core::checkExtNavXY(void) const
+{
+    if (frontend->sources.getPosXYSource() == AP_NavEKF_Source::SourceXY::EXTNAV) {
+        return true;
+    }
+    return false;
+}
+
+// mch return true if the system has switched to external navigation data
+bool NavEKF3_core::checkExtNavZ(void) const
+{
+    if (frontend->sources.getPosZSource() == AP_NavEKF_Source::SourceZ::EXTNAV) {
+        return true;
+    }
+    return false;
+}
+
 // setup this core backend
 bool NavEKF3_core::setup_core(uint8_t _imu_index, uint8_t _core_index)
 {
@@ -883,8 +901,15 @@ void NavEKF3_core::calcOutputStates()
     vertCompFiltState.pos += integ3_input; 
 
     // apply a trapezoidal integration to velocities to calculate position
-    outputDataNew.position.x = 1.0; //mch outputDataNew.position += (outputDataNew.velocity + lastVelocity) * (imuDataNew.delVelDT*0.5f);
-    outputDataNew.position.y = 2.0; //mch
+    outputDataNew.position += (outputDataNew.velocity + lastVelocity) * (imuDataNew.delVelDT*0.5f); // mch
+    //outputDataNew.position.x = 3.0; // mch 
+    //outputDataNew.position.y = 4.0; // mch
+    if(checkExtNavXY()){
+        AP_AHRS &_ahrs = AP::ahrs();
+        outputDataNew.position.x = _ahrs.xT265; // mch 
+        outputDataNew.position.y = _ahrs.yT265; // mch
+    }
+
     // If the IMU accelerometer is offset from the body frame origin, then calculate corrections
     // that can be added to the EKF velocity and position outputs so that they represent the velocity
     // and position of the body frame origin.
@@ -984,7 +1009,9 @@ void NavEKF3_core::calcOutputStates()
             outputStates.velocity += velCorrection;
 
             // a constant position correction is applied
-            outputStates.position += posCorrection;
+            if(!checkExtNavXY())
+                outputStates.position += posCorrection;
+            // mch outputStates.position += posCorrection;
 
             // push the updated data to the buffer
             storedOutput[index] = outputStates;
@@ -1800,7 +1827,9 @@ void NavEKF3_core::StoreOutputReset()
 {
     outputDataNew.quat = stateStruct.quat;
     outputDataNew.velocity = stateStruct.velocity;
-    outputDataNew.position = stateStruct.position;
+    if(!checkExtNavXY())
+        outputDataNew.position = stateStruct.position;
+    // mch outputDataNew.position = stateStruct.position;
     // write current measurement to entire table
     for (uint8_t i=0; i<imu_buffer_length; i++) {
         storedOutput[i] = outputDataNew;
@@ -2217,10 +2246,27 @@ void NavEKF3_core::moveEKFOrigin(void)
 
     // now fix all output states
     stateStruct.position.xy() += diffNE;
-    outputDataNew.position.xy() += diffNE;
+    if(!checkExtNavXY())
+        outputDataNew.position.xy() += diffNE;
+    // mch outputDataNew.position.xy() += diffNE;
     outputDataDelayed.position.xy() += diffNE;
 
     for (unsigned index=0; index < imu_buffer_length; index++) {
         storedOutput[index].position.xy() += diffNE;
     }
 }
+
+
+
+// mch singleton instance
+/*NavEKF3_core *NavEKF3_core::_singleton;
+
+namespace AP {
+
+NavEKF3_core *ek3core()
+{
+    return NavEKF3_core::get_singleton();
+}
+
+}
+*/
